@@ -85,3 +85,18 @@ docker run -d --name redisinsight --network redis-net -p 5540:5540 redis/redisin
 - `INCR` / `INCRBY`: Sayısal değeri artırır
 - `DECR` / `DECRBY`: Sayısal değeri azaltır
 - `APPEND`: Var olan verinin sonuna ekleme yapar
+
+## Redis List Komutları
+- `LPUSH`: Başa veri ekler 
+- `LRANGE`: Verileri listeler
+- `RPUSH`: Sona veri ekler 
+- `LPOP`: İlk datayı çıkar
+- `RPOP`: Son datayı çıkar
+- `LINDEX`: Index'e göre datayı getir
+
+## Redis Set Komutları
+- `SADD`: Ekleme
+- `SREMOVE`: Ekleme
+
+
+
