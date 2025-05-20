@@ -121,9 +121,18 @@ docker exec -it 8c60 redis-cli --raw
 - `HDEL`: Silme
 - `HGETALL`: Tümünü getirme
 
-## In-Memory Cache Absolute & Sliding Expiration
+## In-Memory Cache: Absolute & Sliding Expiration
 
-Absolute time, cache'deki datanın ne kadar tutulacağıına dair net ömrünün belirtilmesidir. Belirtilen ömür solna erdiğinde cache direkt olarak temizlenir.
-Sliding time, cache'lenmiş datanın memory'de belirtilen süre periyodu zarfında tutulmasını belirtir. Belirtilen süre periyodu içerisinde cache'e yapılan erişim neticesinde de datanıon ömrü bir o kadar uzatılacaktır. Aksi taktirde belirtilen süre zarfında bir erişim söz konusu olmazsa cache temizlenecektir.
-Örnek, veri kesinlikle 1 ay var olsun (absolute), ama veri gün içinde kullanılmazsa veriyi sil(sliding)
+**Absolute Expiration**, verinin bellekte ne kadar süre tutulacağını kesin olarak belirler; süre dolduğunda veri otomatik olarak silinir.
+**Sliding Expiration** ise, belirli bir süre boyunca veri kullanılmazsa bellekteki verinin silinmesini sağlar; fakat bu süre içinde veriye erişilirse süre yeniden başlatılır.
 
+> Örnek: Veri mutlaka 1 ay bellekte kalsın (absolute), ancak gün içinde kullanılmazsa silinsin (sliding).
+
+## Distributed Cache İşlem Sırası
+
+1. NuGet üzerinden `StackExchangeRedis` kütüphanesini projeye ekleyin.
+2. `AddStackExchangeRedisCache` metoduyla servisi uygulamaya dahil edin.
+3. `IDistributedCache` arayüzünü bağımlılık olarak projeye enjekte edin.
+4. `SetString` metodu ile metinsel, `Set` metodu ile ise binary verileri Redis'e cache'leyin.
+5. `GetString` ve `Get` metodları ile cache'lenmiş verileri alın.
+6. `Remove` fonksiyonu ile cache'lenmiş verileri silin.
