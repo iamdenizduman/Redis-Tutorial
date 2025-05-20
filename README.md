@@ -62,10 +62,14 @@ docker run -d --name redis --network redis-net -p 1453:6379 redis
 
 # 3. RedisInsight’ı başlat
 docker run -d --name redisinsight --network redis-net -p 5540:5540 redis/redisinsight:latest
-```
+
 
 - Redis Insight arayüzü: [http://localhost:5540/](http://localhost:5540/)
 - Bağlantı stringi: `redis://default@host.docker.internal:1453`
+
+# 4. Ya da cmd terminal içinde redis'i Türkçe destekli çalıştırmak istiyorsak
+docker exec -it 8c60 redis-cli --raw
+```
 
 ## Redis Veri Tipleri
 
@@ -87,16 +91,39 @@ docker run -d --name redisinsight --network redis-net -p 5540:5540 redis/redisin
 - `APPEND`: Var olan verinin sonuna ekleme yapar
 
 ## Redis List Komutları
-- `LPUSH`: Başa veri ekler 
+
+- `LPUSH`: Başa veri ekler
 - `LRANGE`: Verileri listeler
-- `RPUSH`: Sona veri ekler 
+- `RPUSH`: Sona veri ekler
 - `LPOP`: İlk datayı çıkar
 - `RPOP`: Son datayı çıkar
 - `LINDEX`: Index'e göre datayı getir
 
 ## Redis Set Komutları
-- `SADD`: Ekleme
-- `SREMOVE`: Ekleme
 
+- `SADD`: Ekleme (rastgele)
+- `SREM`: Silme
+- `SISMEMBER`: Varsa 1 Yoksa 0 döner
+- `SINTER`: İki set'teki kesişimi getirir.
+- `SCARD`: Eleman sayısını getirir.
 
+## Redis Sorted Set Komutları
+
+- `ZADD`: Ekleme (skor ekleyeceksin, 1-2-3 gibi)
+- `ZREM`: Silme
+- `ZRANGE`: Listeler
+- `ZREVRANK`: Skorunu söyler
+
+## Redis Hash Komutları
+
+- `HMSET & HSET`: Ekleme
+- `HMGET & HGET`: Ekleme
+- `HDEL`: Silme
+- `HGETALL`: Tümünü getirme
+
+## In-Memory Cache Absolute & Sliding Expiration
+
+Absolute time, cache'deki datanın ne kadar tutulacağıına dair net ömrünün belirtilmesidir. Belirtilen ömür solna erdiğinde cache direkt olarak temizlenir.
+Sliding time, cache'lenmiş datanın memory'de belirtilen süre periyodu zarfında tutulmasını belirtir. Belirtilen süre periyodu içerisinde cache'e yapılan erişim neticesinde de datanıon ömrü bir o kadar uzatılacaktır. Aksi taktirde belirtilen süre zarfında bir erişim söz konusu olmazsa cache temizlenecektir.
+Örnek, veri kesinlikle 1 ay var olsun (absolute), ama veri gün içinde kullanılmazsa veriyi sil(sliding)
 
