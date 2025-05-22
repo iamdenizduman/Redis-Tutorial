@@ -22,6 +22,22 @@ namespace Distributed.Caching.Controllers
             await _distributedCache.SetAsync("lastname", Encoding.UTF8.GetBytes(surname));
             return Ok();
         }
+        
+        [HttpGet("SetWithTime")]
+        public async Task<IActionResult> SetWithTime(string name, string surname)
+        {
+            await _distributedCache.SetStringAsync("name", name, options: new()
+            {
+                AbsoluteExpiration = DateTime.Now.AddSeconds(30),
+                SlidingExpiration = TimeSpan.FromSeconds(5)
+            }););
+            await _distributedCache.SetAsync("lastname", Encoding.UTF8.GetBytes(surname), options: new()
+            {
+               AbsoluteExpiration = DateTime.Now.AddSeconds(30),
+               SlidingExpiration = TimeSpan.FromSeconds(5)
+            });
+            return Ok();
+        }
 
         [HttpGet("get")]
         public async Task<IActionResult> Set()

@@ -136,3 +136,68 @@ docker exec -it 8c60 redis-cli --raw
 4. `SetString` metodu ile metinsel, `Set` metodu ile ise binary verileri Redis'e cache'leyin.
 5. `GetString` ve `Get` metodları ile cache'lenmiş verileri alın.
 6. `Remove` fonksiyonu ile cache'lenmiş verileri silin.
+
+## Redis API üzerinden Pub/Sub
+
+- Redis Pub/Sub ile birden fazla istemcinin birbirine mesaj göndermesini sağlayan basit ve hızlı bir mesajlaşma sistemidir. Temel mantığı bir taraf mesaj yayınlar (publish), diğer taraflar bu mesajı dinler (subscribe)
+
+## Redis Pub/Sub vs RabbitMQ
+
+- Redis'te subscribe(abone) olursun, rabbitMQ'de consumer olursun. Yani rediste mesaj gelirse o an subscribe ise mesajı yakalarsın daha sonrasında redis bu mesajı tutmaz iken rabbitMQ'de mesajı işleyen consumer olmadıkça mesajı tutar.
+- Redis in-memory'de çalışırken rabbitMQ'de mesajlar disk+bellek ile kalıcı hale getirilebilir.
+- Redis'teki bu özelik, bildirim gibi alanlarda kullanılırken, rabbit'de görev kuyruğu, işleme sıraya alma, eposta gönderimi gibi alanlarda kullanılır.
+
+## Redis Replication
+
+- Verilerin, güvencesini sağlayabişlmek ve bir kopyasını saklayabilmek için önlemler alınmasında işe yarar.
+- Bir redis sunucusundaki tüm verisel yapıların farklı bir sunucu tarafından birebir modellenmesi/çoğaltılması/replike edilmesidir.
+- Ana sunucu master, repliskayona tabii tutulan sunucular slave olarak geçiyor. Master'daki tüm değişikler anlık olarak slave sunuculşara aktarılıyor olacaktır. Bu bağlantı koptuğu taktirde otomatik olarak yeniden sağlanılarak verisel güvence sergilenmeye çalışacaktır.
+- Slave readonly iken master crud işemlerini kapsar.
+
+## Redis Replication İşlemleri
+
+```bash
+# 1. Master redis'i run et
+docker run -p 1453:6379 --name redis-master -d redis
+
+# 2. Master slave'i run et
+docker run -p 1461:6379 --name redis-slave -d redis
+
+# 3. Docker'daki redis-master ip adresini öğren
+docker inspect -f "{{ .NetworkSettings.IPAdress }}" redis-master
+
+# 4. Redis master'daki ip adresine docker'in redis portunu master olarak kabul ettir
+docker exec -it redis-slave redis-cli slaveof 172.172.0.2:6379
+
+# 5. replication bilgisini çekmek için
+docker exec -it redis-master redis-cli
+info replication
+```
+
+## Redis Sentinel
+
+Redis Sentinel, Redis veritabanı için yüksek kullanılabilirlik sağlamak amacıyla geliştirilmiş bir iş yönetim servisidir. Redis sunucusu çalışamaz hale geldiğinde, farklı bir sunucu üzerinden Redis hizmeti devam ettirilerek kesintisiz hizmet sağlanabilir. Amaç, sunucu hata verdiğinde sistemi çalışabilir durumda tutmaktır.
+
+### Redis Sentinel Temel Kavramları
+
+Redis Sentinel, master/slave replikasyon sistemi üzerinden çalışan bir yönetim servisidir. Redis veritabanının sağlığını izler ve herhangi bir problem/kesinti meydana geldiğinde otomatik olarak failover (yük devretme) işlemlerini gerçekleştirerek farklı bir sunucu üzerinden Redis hizmetinin devam etmesini sağlar.
+
+### Temel Kavramlar
+
+- **master**: Ana Redis sunucusudur. Tüm yazma/okuma işlemleri bu sunucu üzerinden gerçekleştirilir. Yani o anda aktif olan Redis sunucusunun rolünü ifade eder.
+- **slave**: Redis veritabanının yedek sunucularını ifade eder. Master sunucusunun replikasyonudur. Sadece okuma yetkisine sahiptir. Master olana kadar yazma yetkisi yoktur. Birden fazla slave olabilir.
+- **sentinel**: Master olan Redis sunucusunun sağlıklı olup olmadığını sürekli olarak izleyen, sorun tespit ettiğinde başka bir yedek Redis sunucusunu otomatik olarak master olarak atayan yapıdır. Birden fazla slave varsa, sentinel sağlıklı olanı önceliklendirerek seçer.
+- **failover**: Master sunucusunun arızalanması durumunda sentinel tarafından herhangi bir slave'in master olarak atanması işlemidir. Başka bir deyişle, herhangi bir slave'in mevcut master yerine geçip master olmasıdır. Failover gerçekleştikten sonra, sentinel yeni master’ın IP adresini diğer sunuculara ileterek tüm sunucuların senkronize olmasını sağlar. Bu işlemin ardından, eski master sunucu slave konumuna geçer.
+
+### Redis Sentinel Nasıl Çalışır?
+
+1. Master Redis sunucusu seçilir.
+2. Slave Redis sunucuları belirlenir.
+3. Slave Redis’ler, master'a replika edilir.
+4. Sentinel’lar daire şeklinde kurulur ve master ile slave’lerin IP adreslerini tutar.
+5. Master’da problem meydana gelirse, leader sentinel yeni bir master belirler.
+6. Sentinel’da sorun çıkarsa diğer sentinel’lardan biri leader olur.
+
+## Kaynakça
+
+Gençay Yıldız - Youtube Redis Video Serisi
