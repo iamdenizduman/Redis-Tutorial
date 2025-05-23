@@ -198,6 +198,43 @@ Redis Sentinel, master/slave replikasyon sistemi üzerinden çalışan bir yöne
 5. Master’da problem meydana gelirse, leader sentinel yeni bir master belirler.
 6. Sentinel’da sorun çıkarsa diğer sentinel’lardan biri leader olur.
 
+### Redis Sentinel Örnek Çalışma
+
+```bash
+# 1. Docker container'ların haberleşmesini sağlayabilmek için bir network oluştur
+docker network create redis-network
+
+# 2. Redis master sunucusunu oluştur
+docker run -d --name redis-master -p 6379:6379 --network redis-network redis redis-server
+
+# 3. Redis slave sunucularını oluştur
+docker run -d --name redis-slave1 -p 6380:6379 --network redis-network redis redis-server --slaveof redis-master 6379
+docker run -d --name redis-slave2 -p 6381:6379 --network redis-network redis redis-server --slaveof redis-master 6379
+docker run -d --name redis-slave3 -p 6382:6379 --network redis-network redis redis-server --slaveof redis-master 6379
+
+# 4. sentinel kurmak için önce redis master ip öğren
+docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' redis-master
+
+# ip: 172.20.0.2
+
+# 5. sentinel tarafından izlenecek master sunucu ve kaç adet sentinel olacak
+sentinel monitor mymaster 172.20.0.2 6379 3
+
+# 6. mastrer sunucusunun tepki vermemesi durumuyndas Sentinel'in bekleme süresi
+sentinel down-after-milliseconds mymaster 5000
+
+# 7. Master sunucusunun yeniden yapılandırılması için Sentinel'in beklemesi gereken süre
+sentinel failover-timeout mymaster 10000
+
+# 8. Sentinel tarafından eşzamanlı olarak kullanıalcak slave sayısı
+sentinel parallel-syncs mymaster 3
+
+# 9. Sentinel run
+docker run -d --name redis-sentinel-1 -p 6383:26379 --network redis-network -v C:\Users\belbi\OneDrive\Masaüstü\Redis-Tutorial\sentinel.conf:/usr/local/etc/redis/sentinel.conf/ redis redis-sentinel /usr/local/etc/redis/sentinel.conf
+docker run -d --name redis-sentinel-2 -p 6384:26379 --network redis-network -v C:\Users\belbi\OneDrive\Masaüstü\Redis-Tutorial\sentinel.conf:/usr/local/etc/redis/sentinel.conf/ redis redis-sentinel /usr/local/etc/redis/sentinel.conf
+docker run -d --name redis-sentinel-3 -p 6385:26379 --network redis-network -v C:\Users\belbi\OneDrive\Masaüstü\Redis-Tutorial\sentinel.conf:/usr/local/etc/redis/sentinel.conf/ redis redis-sentinel /usr/local/etc/redis/sentinel.conf
+```
+
 ## Kaynakça
 
 Gençay Yıldız - Youtube Redis Video Serisi
