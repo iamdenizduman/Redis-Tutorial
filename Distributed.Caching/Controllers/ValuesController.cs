@@ -30,7 +30,7 @@ namespace Distributed.Caching.Controllers
             {
                 AbsoluteExpiration = DateTime.Now.AddSeconds(30),
                 SlidingExpiration = TimeSpan.FromSeconds(5)
-            }););
+            });
             await _distributedCache.SetAsync("lastname", Encoding.UTF8.GetBytes(surname), options: new()
             {
                AbsoluteExpiration = DateTime.Now.AddSeconds(30),

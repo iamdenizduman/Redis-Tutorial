@@ -235,6 +235,36 @@ docker run -d --name redis-sentinel-2 -p 6384:26379 --network redis-network -v C
 docker run -d --name redis-sentinel-3 -p 6385:26379 --network redis-network -v C:\Users\belbi\OneDrive\Masaüstü\Redis-Tutorial\sentinel.conf:/usr/local/etc/redis/sentinel.conf/ redis redis-sentinel /usr/local/etc/redis/sentinel.conf
 ```
 
+## Örnek Proje: Ürün Kataloğu Cache
+
+Proje Amaç: Ürünleri veritabanından değil, önce Redis'ten eğer redis'te yoksa veritabanından almak. Bu yaklaşım Cache Aside Pattern olarak bilinir.
+
+```bash
+# 1. Docker'da redis'i ayağa kaldır
+docker run -p 1453:6379 --name redis -d redis
+
+# 2. Redis'i terminalde çalıştır
+docker exec -it redis redis-cli
+```
+
+Proje içinden inceleme
+
+```bash
+# product serialize edilmiş şekilde 60 saniye boyunca redis'te saklanuır
+await db.StringSetAsync(cacheKey, JsonSerializer.Serialize(product),
+    TimeSpan.FromSeconds(60));
+
+# redis'te kalan süreyi öğrenmek için
+ttl product:1
+
+# product güncellenince redis'ten key'i sil
+await db.KeyDeleteAsync(cacheKey);
+```
+
+## Örnek Proje: Session/Oturum Yönetimi - Kullanıcı Giriş Takibi
+
+Proje Amaç: Kullanıcı giriş yaptığında access token, refresh token, rol, IP gibi bilgileri redis'te saklamak, kullanıcı çıkış yaptığında veya token süresi dolduğunda Redis'ten silmek ve bu sayede hızlı, merkezi ve expire süreli oturum yönetimi sağlamak.
+
 ## Kaynakça
 
 Gençay Yıldız - Youtube Redis Video Serisi
